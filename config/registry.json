@@ -1,0 +1,169 @@
+{
+  "warnChargeInDays": 7,
+  "payments": [
+    {
+      "id": "selectel-sat",
+      "provider": "Selectel",
+      "name": "VPS sat 2 vCPU / 3.8 ГБ / 50 ГБ NVMe",
+      "amount": 650,
+      "currency": "RUB",
+      "period": "monthly",
+      "anchor": "2026-08-20",
+      "method": "card",
+      "autoRenew": true,
+      "notes": "почасовая оплата, помесячный лимит 650 ₽. Тариф пересмотрен 20.08.2026 (было 400 ₽ за 2/2/40)",
+      "active": true
+    },
+    {
+      "id": "webhost-crafty",
+      "provider": "Webhost LLC",
+      "name": "хостинг crafty (ISPmanager)",
+      "amount": 3778,
+      "currency": "RUB",
+      "period": "yearly",
+      "anchor": "2026-08-11",
+      "method": "card",
+      "autoRenew": false,
+      "notes": "доступы в _credentials/CREDENTIALS.md, панель cp3.webhost1.ru:1500. Продлевать вручную",
+      "active": true
+    },
+    {
+      "id": "opencode-go",
+      "provider": "OpenCode",
+      "name": "Go подписка",
+      "amount": 30,
+      "currency": "USD",
+      "period": "monthly",
+      "anchor": "2026-07-07",
+      "method": "card",
+      "notes": "$12/5M токенов, $30/мес, $60/мес",
+      "active": true
+    },
+    {
+      "id": "yandex-aistudio",
+      "provider": "AI Studio (Yandex Cloud)",
+      "name": "Search API v2 (deferred) + Wordstat",
+      "amount": 0,
+      "currency": "RUB",
+      "period": "usage",
+      "method": "balance",
+      "notes": "pay-as-you-go, фиксированного списания нет. Ночь 25.41 ₽/1000, день 30.5 ₽/1000. Баланс только вручную в кабинете — API нет",
+      "active": true
+    },
+    {
+      "id": "openrouter",
+      "provider": "OpenRouter",
+      "name": "free tier",
+      "amount": 0,
+      "currency": "USD",
+      "period": "usage",
+      "method": "balance",
+      "notes": "~1000 запросов/день, 5-10 RPM",
+      "active": true
+    }
+  ],
+  "domains": [
+    {
+      "host": "135.106.192.125.nip.io",
+      "notes": "бесплатный wildcard-DNS, продления нет. Привязан к IP Selectel — смена IP = смена всех адресов"
+    },
+    {
+      "host": "serpgladys.135.106.192.125.nip.io",
+      "notes": "SERP-сбор. LE-сертификат, автопродление Caddy"
+    },
+    {
+      "host": "courtpulse.135.106.192.125.nip.io",
+      "notes": "LE-сертификат, автопродление Caddy"
+    },
+    {
+      "host": "statgladys.135.106.192.125.nip.io",
+      "notes": "LE-сертификат, автопродление Caddy"
+    },
+    {
+      "host": "casecore-frozen.135.106.192.125.nip.io",
+      "notes": "витрина CaseCore заморожена, переименована из casecore.*. Старый адрес Caddy не обслуживает и отдаёт tls internal error"
+    },
+    {
+      "host": "bikdesk.135.106.192.125.nip.io",
+      "notes": "LE-сертификат, автопродление Caddy"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "serpgladys-health",
+      "url": "https://serpgladys.135.106.192.125.nip.io/serpgladys/api/health",
+      "expectStatus": 200,
+      "bodyContains": "\"ok\":true"
+    },
+    {
+      "name": "casecore-health",
+      "url": "https://casecore-frozen.135.106.192.125.nip.io/api/health",
+      "expectStatus": 200,
+      "bodyContains": "\"status\":\"ok\""
+    },
+    {
+      "name": "courtpulse",
+      "url": "https://courtpulse.135.106.192.125.nip.io/",
+      "expectStatus": 200
+    },
+    {
+      "name": "statgladys",
+      "url": "https://statgladys.135.106.192.125.nip.io/",
+      "expectStatus": 200
+    },
+    {
+      "name": "bikdesk",
+      "url": "https://bikdesk.135.106.192.125.nip.io/",
+      "expectStatus": 200
+    },
+    {
+      "name": "caddy-main-site",
+      "url": "https://135.106.192.125.nip.io/",
+      "expectStatus": 200
+    }
+  ],
+  "tls": [
+    { "host": "serpgladys.135.106.192.125.nip.io", "warnBeforeDays": 14 },
+    { "host": "courtpulse.135.106.192.125.nip.io", "warnBeforeDays": 14 },
+    { "host": "statgladys.135.106.192.125.nip.io", "warnBeforeDays": 14 },
+    { "host": "casecore-frozen.135.106.192.125.nip.io", "warnBeforeDays": 14 },
+    { "host": "bikdesk.135.106.192.125.nip.io", "warnBeforeDays": 14 },
+    { "host": "135.106.192.125.nip.io", "warnBeforeDays": 14 }
+  ],
+  "balances": [
+    {
+      "id": "mailru-cloud",
+      "provider": "Облако Mail.ru",
+      "currency": "GB",
+      "known": 0,
+      "warnBelow": 1,
+      "viaRclone": "mailru:",
+      "notes": "квота читается через rclone about mailru:. Поле known заполняется вручную"
+    }
+  ],
+  "units": [
+    { "unit": "serpgladys.service", "why": "SERP-сбор, основной проект" },
+    { "unit": "statgladys.service", "why": "статистика" },
+    { "unit": "courtpulse.service", "why": "витрина" },
+    { "unit": "caddy.service", "why": "TLS и проксирование" },
+    { "unit": "docker.service", "why": "CaseCore PG/Redis/MinIO" },
+    { "unit": "casecore-api.service", "why": "API витрины" },
+    { "unit": "backup-sat.timer", "why": "бэкапы на диск" }
+  ],
+  "ports": [
+    { "port": 22, "why": "ssh" },
+    { "port": 80, "why": "http, редирект на https" },
+    { "port": 443, "why": "https" },
+    { "port": 8788, "why": "serpgladys api" },
+    { "port": 4000, "why": "casecore api" }
+  ],
+  "email": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "user": "alex.kuzikov@gmail.com",
+    "from": "alex.kuzikov@gmail.com",
+    "to": "alex.kuzikov@gmail.com",
+    "passEnvVar": "OPSWATCH_SMTP_PASS",
+    "useTLS": true
+  }
+}

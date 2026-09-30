@@ -1,0 +1,4 @@
+bin/
+opswatch
+*.exe
+last-report.md
