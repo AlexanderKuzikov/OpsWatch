@@ -46,7 +46,7 @@ Type=oneshot
 User=deploy
 EnvironmentFile=$ENVFILE
 Environment=OPSWATCH_REGISTRY=$CONFIG
-ExecStart=$BIN report -registry $CONFIG -mail problems -out $ROOT/last-report.md -quiet
+ExecStart=/bin/sh -c '$BIN report -registry $CONFIG -mail problems -format markdown -out $ROOT/last-report.md -quiet; $BIN report -registry $CONFIG -mail never -format html -out $ROOT/last-report.html -quiet'
 # A failing check must not be retried by systemd; the next timer run covers it.
 SuccessExitStatus=0 1
 EOF
@@ -105,4 +105,5 @@ sudo journalctl -t opswatch -n 10 --no-pager 2>/dev/null || true
 sudo journalctl -u opswatch-report -n 10 --no-pager || true
 echo
 echo "done. report:  sudo journalctl -u opswatch-report -n 50 --no-pager"
-echo "       file:  $ROOT/last-report.md"
+echo "       md:    $ROOT/last-report.md"
+ echo "       html:  $ROOT/last-report.html"

@@ -20,6 +20,7 @@ heartbeat-письмо отправляется **наружу** — его от
 ```bash
 opswatch validate  -registry config/registry.json   # только разбор и проверка
 opswatch report    -registry config/registry.json   # все проверки + отчёт
+opswatch report    -format html -out report.html     # локальный отчёт для браузера
 opswatch report    -mail always                     # слать всегда, не только при проблемах
 opswatch report    -mail never -quiet               # без почты, без stdout
 opswatch heartbeat                                 # одно письмо «я жив»
@@ -28,12 +29,37 @@ opswatch heartbeat                                 # одно письмо «я 
 Коды возврата: `0` — всё зелёное или только предупреждения, `1` — есть сломанная
 проверка. `systemd` и cron видят это сами.
 
+## Отчёт в HTML
+
+`-format html` собирает **один самодостаточный файл**: CSS встроен, ни одного
+внешнего запроса, шрифты системные. Открывается двойным кликом, работает с
+`file://`, тёмная тема — по `prefers-color-scheme` браузера.
+
+```bash
+opswatch report -registry config/registry.json -mail never \
+  -format html -out last-report.html
+```
+
+На сервере таймер пишет обе версии после каждого прогона:
+
+| Файл | Что |
+|---|---|
+| `/home/deploy/opswatch/last-report.html` | для просмотра, можно забрать по `scp` |
+| `/home/deploy/opswatch/last-report.md` | для истории в git и для чтения в консоли |
+
+Чтобы смотреть свежий отчёт с рабочего места:
+
+```bash
+scp -i C:\Users\alexa\.ssh\id_ed25519 deploy@135.106.192.125:/home/deploy/opswatch/last-report.html .
+```
+
 ## Флаги `report`
 
 | Флаг | По умолчанию | Смысл |
 |---|---|---|
 | `-registry` | `config/registry.json` или `$OPSWATCH_REGISTRY` | файл реестра |
-| `-out` | — | записать markdown-отчёт в файл |
+| `-format` | `markdown` | `markdown` \| `html` |
+| `-out` | — | записать отчёт в файл |
 | `-mail` | `problems` | `always` \| `never` \| `problems` |
 | `-quiet` | false | не печатать в stdout |
 | `-data-dir` | `/` | какая ФС показывать в `disk` |
