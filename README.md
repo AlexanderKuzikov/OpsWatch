@@ -24,6 +24,7 @@ opswatch report    -format html -out report.html     # локальный отч
 opswatch report    -mail always                     # слать всегда, не только при проблемах
 opswatch report    -mail never -quiet               # без почты, без stdout
 opswatch heartbeat                                 # одно письмо «я жив»
+opswatch set-balance -id vsellm -value 1250        # вписать ручной остаток + сегодняшняя дата
 ```
 
 Коды возврата: `0` — всё зелёное или только предупреждения, `1` — есть сломанная

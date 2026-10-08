@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -34,6 +35,8 @@ func main() {
 		err = cmdHeartbeat(os.Args[2:])
 	case "validate":
 		err = cmdValidate(os.Args[2:])
+	case "set-balance":
+		err = cmdSetBalance(os.Args[2:])
 	case "version":
 		fmt.Println("opswatch", version)
 	case "-h", "--help", "help":
@@ -53,18 +56,24 @@ const version = "0.1.0"
 func usage() {
 	fmt.Fprint(os.Stderr, `opswatch - payments, server and certificate watchdog
 
-  opswatch report    [-registry f] [-format markdown|html] [-out f] [-mail always|never|problems] [-quiet]
-  opswatch heartbeat [-registry f]
-  opswatch validate  [-registry f]
-  opswatch version
+   opswatch report    [-registry f] [-format markdown|html] [-out f] [-mail always|never|problems] [-quiet]
+   opswatch heartbeat [-registry f]
+   opswatch validate  [-registry f]
+   opswatch set-balance -id balance-id -value 1234 [-registry f] [-date YYYY-MM-DD]
+   opswatch version
 
 report     runs every check, prints markdown, optionally writes it to a file
            and mails it. Exit code is 1 when any check FAILs, so cron and
            systemd notice on their own.
 heartbeat  mails a plain "still alive" note. Schedule it daily: if the mail
-           stops arriving, the machine is gone — which no self-hosted check
-           can ever tell you.
+            stops arriving, the machine is gone — which no self-hosted check
+            can ever tell you.
 validate   parses the registry and reports problems without probing anything.
+set-balance
+            stamps a hand-kept balance (Known + today as LastUpdate) so a
+            manual figure costs one command instead of hand-editing JSON.
+            The registry stays the user's data: this only writes what you
+            tell it.
 `)
 }
 
@@ -82,6 +91,53 @@ func cmdValidate(args []string) error {
 	for _, cur := range cost.SortedCurrencies() {
 		fmt.Printf("расходы: %.0f %s/мес, %.0f %s/год\n", cost.Monthly[cur], cur, cost.Yearly[cur], cur)
 	}
+	return nil
+}
+
+func cmdSetBalance(args []string) error {
+	fs := flag.NewFlagSet("set-balance", flag.ExitOnError)
+	path := fs.String("registry", defaultRegistry(), "registry file")
+	id := fs.String("id", "", "balance id")
+	value := fs.String("value", "", "new known figure")
+	date := fs.String("date", "", "update date YYYY-MM-DD (default today)")
+	fs.Parse(args)
+
+	if *id == "" || *value == "" {
+		return fmt.Errorf("-id and -value are required")
+	}
+	var v float64
+	if _, err := fmt.Sscanf(*value, "%f", &v); err != nil || v < 0 {
+		return fmt.Errorf("-value must be a non-negative number, got %q", *value)
+	}
+	day := *date
+	if day == "" {
+		day = time.Now().Format("2006-01-02")
+	} else if _, err := time.Parse("2006-01-02", day); err != nil {
+		return fmt.Errorf("-date must be YYYY-MM-DD, got %q", day)
+	}
+	reg, err := registry.Load(*path)
+	if err != nil {
+		return err
+	}
+	found := false
+	for i := range reg.Balances {
+		if reg.Balances[i].ID == *id {
+			reg.Balances[i].Known = v
+			reg.Balances[i].LastUpdate = day
+			found = true
+		}
+	}
+	if !found {
+		return fmt.Errorf("no balance %q in %s", *id, *path)
+	}
+	out, err := json.MarshalIndent(reg, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := writeFile(*path, string(out)+"\n"); err != nil {
+		return err
+	}
+	fmt.Printf("balance %s: %.2f, обновлено %s\n", *id, v, day)
 	return nil
 }
 
