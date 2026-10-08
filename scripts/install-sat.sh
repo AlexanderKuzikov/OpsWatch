@@ -29,6 +29,13 @@ if [ ! -f "$ENVFILE" ]; then
 # Generate at https://myaccount.google.com/apppasswords (needs 2FA on).
 # It is a 16-character code, spaces are fine.
 OPSWATCH_SMTP_PASS=
+# Live balance keys (empty = that check warns "key missing", nothing breaks).
+# OpenRouter: provisioning key for /credits, plain key also works via /auth/key fallback.
+OPSWATCH_OPENROUTER_KEY=
+# RouterAI: plain API key.
+OPSWATCH_ROUTERAI_KEY=
+# Selectel: static token (Billing API), header X-Token.
+OPSWATCH_SELECTEL_TOKEN=
 EOF
   sudo chown root:root "$ENVFILE"
   sudo chmod 0600 "$ENVFILE"

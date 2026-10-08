@@ -66,17 +66,25 @@ type TLSCheck struct {
 	WarnBeforeDay int    `json:"warnBeforeDays,omitempty"`
 }
 
-// Balance is a quota check. Only providers with an API (rclone backends) can
-// be read automatically; the rest is a hand-updated figure with a floor.
+// Balance is a quota check. Three flavours: hand-kept (Known + LastUpdate),
+// rclone backends (ViaRclone) and live HTTP providers (Via + AuthEnvVar).
+// The secret itself is never in the registry — only the env var name.
 type Balance struct {
-	ID         string  `json:"id"`
-	Provider   string  `json:"provider"`
-	Currency   string  `json:"currency"`
-	Known      float64 `json:"known"`
-	WarnBelow  float64 `json:"warnBelow"`
-	ViaRclone  string  `json:"viaRclone,omitempty"` // remote name, e.g. mailru:
-	LastUpdate string  `json:"lastUpdate,omitempty"`
-	Notes      string  `json:"notes,omitempty"`
+	ID             string  `json:"id"`
+	Provider       string  `json:"provider"`
+	Currency       string  `json:"currency"`
+	Known          float64 `json:"known"`
+	WarnBelow      float64 `json:"warnBelow"`
+	ViaRclone      string  `json:"viaRclone,omitempty"` // remote name, e.g. mailru:
+	Via            string  `json:"via,omitempty"`       // manual | openrouter | routerai | selectel
+	URL            string  `json:"url,omitempty"`       // override the default endpoint
+	AuthEnvVar     string  `json:"authEnvVar,omitempty"`
+	AuthHeader     string  `json:"authHeader,omitempty"` // default Authorization (Selectel: X-Token)
+	AuthScheme     string  `json:"authScheme,omitempty"` // default Bearer; "" = raw token
+	PredictionURL  string  `json:"predictionUrl,omitempty"`
+	LastUpdate     string  `json:"lastUpdate,omitempty"`
+	StaleAfterDays int     `json:"staleAfterDays,omitempty"` // default 30 for manual
+	Notes          string  `json:"notes,omitempty"`
 }
 
 // UnitCheck is a systemd unit that must be active.
@@ -165,6 +173,21 @@ func (r *Registry) Validate() error {
 		}
 		if e.ExpectStatus == 0 {
 			return fmt.Errorf("endpoint %s: expectStatus not set", e.Name)
+		}
+	}
+	for _, b := range r.Balances {
+		if b.ID == "" {
+			return fmt.Errorf("balance without id: %+v", b)
+		}
+		switch b.Via {
+		case "", "manual", "openrouter", "routerai", "selectel":
+		default:
+			return fmt.Errorf("balance %s: unknown via %q", b.ID, b.Via)
+		}
+		if b.Via == "openrouter" || b.Via == "routerai" || b.Via == "selectel" {
+			if b.AuthEnvVar == "" {
+				return fmt.Errorf("balance %s: via %q needs authEnvVar (env var name, not the secret)", b.ID, b.Via)
+			}
 		}
 	}
 	for _, t := range r.TLS {

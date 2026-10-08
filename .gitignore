@@ -1,5 +1,5 @@
 bin/
-opswatch
+/opswatch
 *.exe
 last-report.md
 last-report.html
